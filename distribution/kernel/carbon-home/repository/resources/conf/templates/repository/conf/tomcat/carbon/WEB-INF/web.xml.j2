@@ -22,12 +22,13 @@
     <absolute-ordering/>
 
     <!-- OWASP CSRFGuard per-application configuration property file location-->
-    {% for filter in tomcat.carbon.context-param %}
+    {% for contextparam in tomcat.carbon.context_param %}
     <context-param>
-        <param-name>{{context-param.name}}</param-name>
-        <param-value>{{context-param.value}}</param-value>
+        <param-name>{{contextparam.name}}</param-name>
+        <param-value>{{contextparam.value}}</param-value>
     </context-param>
     {% endfor %}
+
 
     <servlet id="bridge">
         <servlet-name>bridgeservlet</servlet-name>
@@ -50,6 +51,20 @@
         <url-pattern>{{servlet_mapping.urlpattern}}</url-pattern>
     </servlet_mapping>
     {% endfor %}
+
+    {% for filter in tomcat.carbon.filter %}
+    <filter>
+        <filter-name>{{filter.name}}</filter-name>
+        <filter-class>{{filter.class}}</filter-class>
+    {% if filter.init-param is defined %}
+        {% for initparameter in filter.init-param %}
+         <param-name>initparameter.name</param-name>
+         <param-value>initparameter.value</param-value>
+        {% endfor %}
+    {% endif %}
+    </filter>
+    {% endfor %}
+
 
 
     {% for filter_mapping in tomcat.carbon.filter_mapping %}
