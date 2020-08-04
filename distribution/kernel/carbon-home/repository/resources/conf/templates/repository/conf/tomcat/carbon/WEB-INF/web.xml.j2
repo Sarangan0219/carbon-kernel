@@ -56,16 +56,12 @@
     <filter>
         <filter-name>{{filter.name}}</filter-name>
         <filter-class>{{filter.class}}</filter-class>
-    {% if filter.init-param is defined %}
-        {% for initparameter in filter.init-param %}
-         <param-name>initparameter.name</param-name>
-         <param-value>initparameter.value</param-value>
-        {% endfor %}
-    {% endif %}
+	<init-param>
+		 <param-name>{{filter.init_param_name}}</param-name>
+		 <param-value>{{filter.init_param_value}}</param-value>
+	</init-param>
     </filter>
     {% endfor %}
-
-
 
     {% for filter_mapping in tomcat.carbon.filter_mapping %}
     <filter_mapping>
@@ -76,6 +72,82 @@
     </filter_mapping>
     {% endfor %}
 
+    <!--This is for performing the character encoding in the JSPs. -->
+    <filter>
+        <filter-name>CharsetFilter</filter-name>
+        <filter-class>org.wso2.carbon.tomcat.ext.filter.CharacterSetFilter</filter-class>
+        <init-param>
+            <param-name>requestEncoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+
+    <!-- OWASP CSRFGuard filter used to validate CSRF token-->
+    <filter>
+        <filter-name>CSRFGuard</filter-name>
+        <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+    </filter>
+
+    <!-- Tomcat http header security filter -->
+    <filter>
+         <filter-name>HttpHeaderSecurityFilter</filter-name>
+         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+         <init-param>
+         <param-name>hstsEnabled</param-name>
+         <param-value>false</param-value>
+         </init-param>
+         <init-param>
+         <param-name>antiClickJackingEnabled</param-name>
+         <param-value>false</param-value>
+         </init-param>
+     </filter>
+
+     <filter>
+         <filter-name>HttpHeaderSecurityFilter_EnableAntiClickJacking</filter-name>
+         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+         <init-param>
+         <param-name>hstsEnabled</param-name>
+         <param-value>false</param-value>
+         </init-param>
+         <init-param>
+         <param-name>blockContentTypeSniffingEnabled</param-name>
+         <param-value>false</param-value>
+         </init-param>
+         <init-param>
+         <param-name>xssProtectionEnabled</param-name>
+         <param-value>false</param-value>
+         </init-param>
+     </filter>
+
+     <filter-mapping>
+         <filter-name>HttpHeaderSecurityFilter</filter-name>
+         <url-pattern>*</url-pattern>
+     </filter-mapping>
+
+     <filter-mapping>
+         <filter-name>CharsetFilter</filter-name>
+         <url-pattern>/*</url-pattern>
+     </filter-mapping>
+
+     <filter-mapping>
+         <filter-name>HttpHeaderSecurityFilter_EnableAntiClickJacking</filter-name>
+         <url-pattern>/carbon/*</url-pattern>
+         <url-pattern>/services/*</url-pattern>
+         <url-pattern>/samlsso/*</url-pattern>
+         <url-pattern>/openid/*</url-pattern>
+         <url-pattern>/openidserver/*</url-pattern>
+         <url-pattern>/passivests/*</url-pattern>
+         <url-pattern>/acs/*</url-pattern>
+         <url-pattern>/iwa/*</url-pattern>
+         <url-pattern>/identity/*</url-pattern>
+         <url-pattern>/thriftAuthenticator/*</url-pattern>
+     </filter-mapping>
+
+     <filter-mapping>
+         <filter-name>CSRFGuard</filter-name>
+         <url-pattern>/*</url-pattern>
+     </filter-mapping>
+
 
     {% if tomcat.carbon.listener is defined %}
     {% for listener in tomcat.carbon.listener.class %}
@@ -85,6 +157,15 @@
     {% endfor %}
     {% endif %}
 
+    <!-- OWASP CSRFGuard context listener used to read CSRF configuration -->
+    <listener>
+        <listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+    </listener>
+
+    <!-- OWASP CSRFGuard session listener used to generate per-session CSRF token -->
+    <listener>
+        <listener-class>org.owasp.csrfguard.CsrfGuardHttpSessionListener</listener-class>
+    </listener>
 
     <session-config>
         <session-timeout>{{tomcat.management_console.session_timeout}}</session-timeout>
